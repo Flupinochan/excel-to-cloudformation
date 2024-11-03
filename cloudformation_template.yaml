@@ -1,0 +1,53 @@
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: false
+            VolumeType: gp2
+            VolumeSize: 50
+      DisableApiTermination: False
+      IamInstanceProfile: iam_role_xxx
+      ImageId: ami-0d9b323107733780e
+      InstanceType: t3.medium
+      Monitoring: false
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: True
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          SubnetId: subnet-xxx
+          GroupSet:
+            - sg-xxx
+      Tags:
+        - Key: Name
+          Value: jinja2_test
+        - Key: User
+          Value: metalmental
+        - Key: Environment
+          Value: development
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          # OSユーザ設定
+          ## テキストのパスワードをセキュア文字列に変換
+          $securePassword = ConvertTo-SecureString "Password1!" -AsPlainText -Force
+          ## ユーザを作成
+          New-LocalUser -Name "user1" -Password $securePassword
+          ## ユーザをグループに追加
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "user1"
+          ## テキストのパスワードをセキュア文字列に変換
+          $securePassword = ConvertTo-SecureString "Password2!" -AsPlainText -Force
+          ## ユーザを作成
+          New-LocalUser -Name "user2" -Password $securePassword
+          ## ユーザをグループに追加
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "user2"
+          ## テキストのパスワードをセキュア文字列に変換
+          $securePassword = ConvertTo-SecureString "Password3!" -AsPlainText -Force
+          ## ユーザを作成
+          New-LocalUser -Name "user3" -Password $securePassword
+          ## ユーザをグループに追加
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "user3"
+          </powershell>

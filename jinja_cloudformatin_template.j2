@@ -1,0 +1,44 @@
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: false
+            VolumeType: {{ タイプ }}
+            VolumeSize: {{ サイズ }}
+            {%- if タイプ == "gp3" %}
+            Iops: {{ IOPS }}
+            {%- endif %}
+      DisableApiTermination: {{ 終了保護 }}
+      IamInstanceProfile: {{ IAM_インスタンスプロフィール }}
+      ImageId: {{ AMI_ID }}
+      InstanceType: {{ インスタンスタイプ }}
+      Monitoring: false
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: {{ Public_IP }}
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          SubnetId: {{ Subnet_ID }}
+          GroupSet:
+            - {{ Security_Group_ID }}
+      Tags:
+        {%- for item in ec2_tags %}
+        - Key: {{ item[0] }}
+          Value: {{ item[1] }}
+        {%- endfor %}
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          # OSユーザ設定
+          {%- for item in os_users %}
+          ## テキストのパスワードをセキュア文字列に変換
+          $securePassword = ConvertTo-SecureString "{{ item[1] }}" -AsPlainText -Force
+          ## ユーザを作成
+          New-LocalUser -Name "{{ item[0] }}" -Password $securePassword
+          ## ユーザをグループに追加
+          Add-LocalGroupMember -Group "{{ item[2] }}" -Member "{{ item[0] }}"
+          {%- endfor %}
+          </powershell>
