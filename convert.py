@@ -20,7 +20,7 @@ jinja2_template = jinja_env.get_template(jinja_template_name)
 
 # Excelファイル読み込み設定
 excel_file_name = "【EC2】パラメータシート.xlsx"
-wb = openpyxl.load_workbook(excel_file_name)
+wb = openpyxl.load_workbook(excel_file_name, data_only=True)
 
 # EC2インスタンス設定
 ec2_tags = get_horizontal_key_value_pairs(wb, "タグ")
